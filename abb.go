@@ -102,10 +102,16 @@ func (i *iterAbb[K, V]) HaySiguiente() bool {
 }
 
 func (i *iterAbb[K, V]) VerActual() (K, V) {
+	if !i.HaySiguiente() {
+		panic("El iterador termino de iterar")
+	}
 	return i.pila.VerTope().clave, i.pila.VerTope().dato
 }
 
 func (i *iterAbb[K, V]) Siguiente() K {
+	if !i.HaySiguiente() {
+		panic("El iterador termino de iterar")
+	}
 	nodo := i.pila.Desapilar()
 	if nodo.der != nil {
 		i.pila.Apilar(nodo.der)
