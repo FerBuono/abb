@@ -123,6 +123,17 @@ func (i *iterAbb[K, V]) Siguiente() K {
 
 // Primitivas del DiccionarioOrdenado
 
+func (a *abb[K, V]) IterarRango(desde *K, hasta *K, visitar func(clave K, dato V) bool) {
+	a.iterarPorRango(a.raiz, visitar, desde, hasta)
+}
+
+func (a *abb[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
+	iter := new(iterAbb[K, V])
+	iter.pila = TDAPila.CrearPilaDinamica[*nodoAbb[K, V]]()
+	iter.apilarRango(iter.abb.raiz, desde, hasta)
+	return iter
+}
+
 // Funciones y métodos auxiliares
 
 func (a *abb[K, V]) crearNodo(clave K, dato V) *nodoAbb[K, V] {
@@ -194,5 +205,38 @@ func (a *abb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V], pila TDAPila.Pila[*nodoA
 	} else {
 		pila.Apilar(nodo.izq)
 		a.apilarHijosIzq(nodo.izq, pila)
+	}
+}
+
+func (a *abb[K, V]) iterarPorRango(actual *nodoAbb[K, V], f func(K, V) bool, desde *K, hasta *K) {
+	if actual == nil {
+		return
+	}
+	if a.cmp(actual.clave, *desde) > 0 {
+		a.iterarPorRango(actual.izq, f, desde, hasta)
+	}
+	if a.cmp(actual.clave, *desde) >= 0 && a.cmp(actual.clave, *hasta) <= 0 {
+		if !f(actual.clave, actual.dato) {
+			return
+		}
+	}
+	if a.cmp(actual.clave, *hasta) < 0 {
+		a.iterarPorRango(actual.der, f, desde, hasta)
+	}
+	return
+}
+
+func (i *iterAbb[K, V]) apilarRango(actual *nodoAbb[K, V], desde, hasta *K) {
+	if actual == nil {
+		return
+	}
+	if i.abb.cmp(actual.clave, *desde) > 0 {
+		i.apilarRango(actual.izq, desde, hasta)
+	}
+	if i.abb.cmp(actual.clave, *desde) >= 0 && i.abb.cmp(actual.clave, *hasta) <= 0 {
+		i.pila.Apilar(actual)
+	}
+	if i.abb.cmp(actual.clave, *hasta) < 0 {
+		i.apilarRango(actual.der, desde, hasta)
 	}
 }
