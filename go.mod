@@ -1,4 +1,4 @@
-module diccionario.go
+module diccionario
 
 go 1.18
 
