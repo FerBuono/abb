@@ -32,15 +32,17 @@ func CrearABB[K comparable, V any](funcion_cmp func(K, K) int) DiccionarioOrdena
 // Primitivas del Diccionario
 
 func (a *abb[K, V]) Guardar(clave K, dato V) {
-	nodo := &nodoAbb[K, V]{clave: clave, dato: dato}
-	if a.raiz == nil {
-		a.raiz = nodo
-		a.cant++
+	puntero := a.buscarPuntero(clave, a.raiz)
+	if *puntero != nil {
+		(*puntero).dato = dato
 	} else {
-		a.agregarNodo(a.raiz, nodo)
+		if a.raiz == nil {
+			a.raiz = &nodoAbb[K, V]{clave: clave, dato: dato}
+		} else {
+			*puntero = &nodoAbb[K, V]{clave: clave, dato: dato}
+		}
+		a.cant++
 	}
-	a.verArbol()
-
 }
 
 func (a *abb[K, V]) verArbol() {
@@ -52,38 +54,14 @@ func (a *abb[K, V]) verArbol() {
 	fmt.Println("\n-----------")
 }
 
-func (a *abb[K, V]) agregarNodo(nodoPadre, nodo *nodoAbb[K, V]) {
-	if a.cmp(nodo.clave, nodoPadre.clave) < 0 {
-		if nodoPadre.izq == nil {
-			nodoPadre.izq = nodo
-			a.cant++
-		} else {
-			a.agregarNodo(nodoPadre.izq, nodo)
-		}
-	}
-
-	if a.cmp(nodo.clave, nodoPadre.clave) > 0 {
-		if nodoPadre.der == nil {
-			nodoPadre.der = nodo
-			a.cant++
-		} else {
-			a.agregarNodo(nodoPadre.der, nodo)
-		}
-	}
-
-	if a.cmp(nodo.clave, nodoPadre.clave) == 0 {
-		nodoPadre.dato = nodo.dato
-	}
-}
-
 func (a *abb[K, V]) Pertenece(clave K) bool {
-	return a.buscarPuntero(clave, a.raiz) != nil
+	return *(a.buscarPuntero(clave, a.raiz)) != nil
 }
 
 func (a *abb[K, V]) Obtener(clave K) V {
 	puntero := a.buscarPuntero(clave, a.raiz)
-	if puntero != nil {
-		return puntero.dato
+	if *puntero != nil {
+		return (*puntero).dato
 	} else {
 		panic("La clave no pertenece al diccionario")
 	}
@@ -92,35 +70,34 @@ func (a *abb[K, V]) Obtener(clave K) V {
 func (a *abb[K, V]) Borrar(clave K) V {
 	puntero := a.buscarPuntero(clave, a.raiz)
 	var dato V
-	if puntero != nil {
-		dato = puntero.dato
+	if *puntero != nil {
+		dato = (*puntero).dato
 		if a.cant == 1 {
 			a.raiz = nil
-			return dato
 		}
-		if a.cantidadDeHijos(puntero) == 0 {
-			fmt.Println(puntero, "Entro aca: 0 hijos")
-			puntero = nil
-		} else if a.cantidadDeHijos(puntero) == 1 {
-			fmt.Println(puntero, "Entro aca: 1 hijo")
-			nuevaClave := a.obtenerHijo(puntero).clave
-			nuevoDato := a.Borrar(nuevaClave)
-			puntero.clave = nuevaClave
-			puntero.dato = nuevoDato
+		if a.cantidadDeHijos(*puntero) == 0 {
+			*puntero = nil
+		} else if a.cantidadDeHijos(*puntero) == 1 {
+			reemplazo := a.obtenerHijo(*puntero)
+			a.borrarReemplazo(reemplazo.clave, *puntero)
+			(*puntero).clave = reemplazo.clave
+			(*puntero).dato = reemplazo.dato
 		} else {
-			fmt.Println(puntero, "Entro aca: 2 hijos")
-			nuevaClave := a.buscarReemplazo(puntero.izq).clave
-			nuevoDato := a.Borrar(nuevaClave)
-			puntero.clave = nuevaClave
-			puntero.dato = nuevoDato
+			reemplazo := a.buscarReemplazo((*puntero).izq)
+			a.borrarReemplazo(reemplazo.clave, *puntero)
+			(*puntero).clave = reemplazo.clave
+			(*puntero).dato = reemplazo.dato
 		}
 		a.cant--
 	} else {
 		panic("La clave no pertenece al diccionario")
 	}
-	a.verArbol()
-
 	return dato
+}
+
+func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
+	puntero := a.buscarPuntero(clave, nodo)
+	*puntero = nil
 }
 
 func (a *abb[K, V]) Cantidad() int {
@@ -180,22 +157,22 @@ func (a *abb[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
 
 // Funciones y métodos auxiliares
 
-func (a *abb[K, V]) buscarPuntero(clave K, nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
+func (a *abb[K, V]) buscarPuntero(clave K, nodo *nodoAbb[K, V]) **nodoAbb[K, V] {
 	if nodo == nil {
-		return nodo
+		return &nodo
 	}
 	if a.cmp(clave, nodo.clave) < 0 {
 		if nodo.izq == nil || a.cmp(clave, nodo.izq.clave) == 0 {
-			return nodo.izq
+			return &nodo.izq
 		}
 		return a.buscarPuntero(clave, nodo.izq)
 	} else if a.cmp(clave, nodo.clave) > 0 {
 		if nodo.der == nil || a.cmp(clave, nodo.der.clave) == 0 {
-			return nodo.der
+			return &nodo.der
 		}
 		return a.buscarPuntero(clave, nodo.der)
 	} else {
-		return nodo
+		return &nodo
 	}
 }
 

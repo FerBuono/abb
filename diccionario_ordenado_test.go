@@ -2,7 +2,10 @@ package diccionario_test
 
 import (
 	TDA_ABB "diccionario"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDiccionario(t *testing.T) {
@@ -10,6 +13,8 @@ func TestDiccionario(t *testing.T) {
 	dic.Guardar(5, 1)
 	dic.Guardar(6, 2)
 	dic.Borrar(6)
+	dic.Borrar(5)
+
 	dic.Guardar(2, 1)
 	dic.Guardar(4, 2)
 	dic.Guardar(5, 3)
@@ -18,7 +23,6 @@ func TestDiccionario(t *testing.T) {
 
 }
 
-/**
 func TestDiccionarioVacio(t *testing.T) {
 	t.Log("Comprueba que Diccionario vacio no tiene claves")
 	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
@@ -192,4 +196,3 @@ func TestValorNulo(t *testing.T) {
 	require.EqualValues(t, (*int)(nil), dic.Borrar(clave))
 	require.False(t, dic.Pertenece(clave))
 }
-**/
