@@ -46,6 +46,9 @@ func (a *abb[K, V]) Guardar(clave K, dato V) {
 }
 
 func (a *abb[K, V]) verArbol() {
+	if a.cant == 0 {
+		return
+	}
 	for iter := a.Iterador(); iter.HaySiguiente(); {
 		clave, dato := iter.VerActual()
 		fmt.Print("- {", clave, ":", dato, "} -")
@@ -79,16 +82,18 @@ func (a *abb[K, V]) Borrar(clave K) V {
 		*puntero = nil
 	} else if a.cantidadDeHijos(*puntero) == 1 {
 		reemplazo := a.obtenerHijo(*puntero)
-		a.borrarReemplazo(reemplazo.clave, *puntero)
 		(*puntero).clave = reemplazo.clave
 		(*puntero).dato = reemplazo.dato
+		(*puntero).izq = reemplazo.izq
+		(*puntero).der = reemplazo.der
 	} else {
 		reemplazo := a.buscarReemplazo((*puntero).izq)
-		a.borrarReemplazo(reemplazo.clave, *puntero)
 		(*puntero).clave = reemplazo.clave
 		(*puntero).dato = reemplazo.dato
+		a.borrarReemplazo(reemplazo.clave, (*puntero).izq)
 	}
 	a.cant--
+
 	return dato
 }
 
@@ -103,8 +108,10 @@ func (a *abb[K, V]) Iterar(funcion func(K, V) bool) {
 func (a *abb[K, V]) Iterador() IterDiccionario[K, V] {
 	iter := new(iterAbb[K, V])
 	iter.pila = TDAPila.CrearPilaDinamica[*nodoAbb[K, V]]()
-	iter.pila.Apilar(a.raiz)
-	a.apilarHijosIzq(a.raiz, iter.pila)
+	if a.raiz != nil {
+		iter.pila.Apilar(a.raiz)
+		a.apilarHijosIzq(a.raiz, iter.pila)
+	}
 	return iter
 }
 
@@ -196,7 +203,15 @@ func (a *abb[K, V]) obtenerHijo(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
 
 func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
 	puntero := a.buscarPuntero(clave, nodo)
-	*puntero = nil
+	if a.cantidadDeHijos(*puntero) == 0 {
+		*puntero = nil
+	} else if a.cantidadDeHijos(*puntero) == 1 {
+		reemplazo := a.obtenerHijo(*puntero)
+		(*puntero).clave = reemplazo.clave
+		(*puntero).dato = reemplazo.dato
+		(*puntero).izq = reemplazo.izq
+		(*puntero).der = reemplazo.der
+	}
 }
 
 func (a *abb[K, V]) iterar(nodo *nodoAbb[K, V], f func(K, V) bool) {
