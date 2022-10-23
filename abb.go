@@ -33,15 +33,15 @@ func CrearABB[K comparable, V any](funcion_cmp func(K, K) int) DiccionarioOrdena
 
 func (a *abb[K, V]) Guardar(clave K, dato V) {
 	puntero := a.buscarPuntero(clave, a.raiz)
-	if *puntero != nil {
-		(*puntero).dato = dato
-	} else {
+	if *puntero == nil {
 		if a.raiz == nil {
 			a.raiz = &nodoAbb[K, V]{clave: clave, dato: dato}
 		} else {
 			*puntero = &nodoAbb[K, V]{clave: clave, dato: dato}
 		}
 		a.cant++
+	} else {
+		(*puntero).dato = dato
 	}
 }
 
@@ -60,44 +60,36 @@ func (a *abb[K, V]) Pertenece(clave K) bool {
 
 func (a *abb[K, V]) Obtener(clave K) V {
 	puntero := a.buscarPuntero(clave, a.raiz)
-	if *puntero != nil {
-		return (*puntero).dato
-	} else {
+	if *puntero == nil {
 		panic("La clave no pertenece al diccionario")
 	}
+	return (*puntero).dato
 }
 
 func (a *abb[K, V]) Borrar(clave K) V {
 	puntero := a.buscarPuntero(clave, a.raiz)
-	var dato V
-	if *puntero != nil {
-		dato = (*puntero).dato
-		if a.cant == 1 {
-			a.raiz = nil
-		}
-		if a.cantidadDeHijos(*puntero) == 0 {
-			*puntero = nil
-		} else if a.cantidadDeHijos(*puntero) == 1 {
-			reemplazo := a.obtenerHijo(*puntero)
-			a.borrarReemplazo(reemplazo.clave, *puntero)
-			(*puntero).clave = reemplazo.clave
-			(*puntero).dato = reemplazo.dato
-		} else {
-			reemplazo := a.buscarReemplazo((*puntero).izq)
-			a.borrarReemplazo(reemplazo.clave, *puntero)
-			(*puntero).clave = reemplazo.clave
-			(*puntero).dato = reemplazo.dato
-		}
-		a.cant--
-	} else {
+	if *puntero == nil {
 		panic("La clave no pertenece al diccionario")
 	}
+	dato := (*puntero).dato
+	if a.cant == 1 {
+		a.raiz = nil
+	}
+	if a.cantidadDeHijos(*puntero) == 0 {
+		*puntero = nil
+	} else if a.cantidadDeHijos(*puntero) == 1 {
+		reemplazo := a.obtenerHijo(*puntero)
+		a.borrarReemplazo(reemplazo.clave, *puntero)
+		(*puntero).clave = reemplazo.clave
+		(*puntero).dato = reemplazo.dato
+	} else {
+		reemplazo := a.buscarReemplazo((*puntero).izq)
+		a.borrarReemplazo(reemplazo.clave, *puntero)
+		(*puntero).clave = reemplazo.clave
+		(*puntero).dato = reemplazo.dato
+	}
+	a.cant--
 	return dato
-}
-
-func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
-	puntero := a.buscarPuntero(clave, nodo)
-	*puntero = nil
 }
 
 func (a *abb[K, V]) Cantidad() int {
@@ -200,6 +192,11 @@ func (a *abb[K, V]) obtenerHijo(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
 	} else {
 		return nodo.der
 	}
+}
+
+func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
+	puntero := a.buscarPuntero(clave, nodo)
+	*puntero = nil
 }
 
 func (a *abb[K, V]) iterar(nodo *nodoAbb[K, V], f func(K, V) bool) {
