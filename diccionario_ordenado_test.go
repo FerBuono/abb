@@ -16,21 +16,15 @@ var TAMS_VOLUMEN = []int{1000, 2000, 4000}
 func TestAbb(t *testing.T) {
 	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
 
-	desde := 12
-	hasta := 50
-	dic.Guardar(20, 10)
-	dic.Guardar(10, 10)
+	desde := 2
+	hasta := 5
+	dic.Guardar(1, 10)
+	dic.Guardar(2, 10)
+	dic.Guardar(3, 10)
+	dic.Guardar(4, 10)
 	dic.Guardar(5, 10)
-	dic.Guardar(12, 10)
-	dic.Guardar(100, 10)
-	dic.Guardar(34, 10)
-	dic.Guardar(60, 10)
-	dic.Guardar(70, 10)
-	dic.Guardar(42, 10)
-	dic.Guardar(50, 10)
-	dic.Guardar(15, 12)
-	dic.Guardar(13, 10)
-
+	dic.Guardar(6, 10)
+	dic.Guardar(7, 10)
 	for iter := dic.IteradorRango(&desde, &hasta); iter.HaySiguiente(); {
 		fmt.Println(iter.VerActual())
 		iter.Siguiente()

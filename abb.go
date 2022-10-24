@@ -257,10 +257,10 @@ func (i *iterAbb[K, V]) buscarPrimero(nodo *nodoAbb[K, V], desde *K) *nodoAbb[K,
 		return nodo
 	}
 
-	if i.desde != nil && i.abb.cmp(*i.desde, nodo.clave) >= 0 {
+	if i.desde != nil && i.abb.cmp(*i.desde, nodo.clave) > 0 {
 		return i.buscarPrimero(nodo.der, desde)
 	}
-	if i.hasta != nil && i.abb.cmp(*i.hasta, nodo.clave) <= 0 {
+	if i.hasta != nil && i.abb.cmp(*i.hasta, nodo.clave) < 0 {
 		return i.buscarPrimero(nodo.izq, desde)
 	}
 	return nodo
