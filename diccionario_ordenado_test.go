@@ -593,27 +593,26 @@ func TestIterarCortePorFucion(t *testing.T) {
 		return a - b
 	}
 	dic := TDA_ABB.CrearABB[int, *int](cmp)
-	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
-	raiz := 500
-	dic.Guardar(raiz, &raiz)
 
-	//Se guardan numeros positivos aleatorios
-	for i := 0; i < 2500; i++ {
-		random := rand.Int()
-		dic.Guardar(rand.Intn(1000), &random)
+	raiz := 10
+	contador := 0
+	dic.Guardar(raiz, nil)
+
+	for i := 0; i < 20; i++ {
+		if i <= 5 {
+			contador += i + 1
+		}
+		dic.Guardar(i, nil)
 	}
 
-	//Con estas condiciones suma debe si o si superar 1000 en el caso de que itere todo
-	desde := 500
-	hasta := 1750
-	suma := 0
-
+	contador_test := 0
 	visitar := func(clave int, dato *int) bool {
-		suma += *dato
-		return suma > 1000
+		contador_test += clave // Si sumo mi clave es porque clave-1 dio true
+		return clave <= 5
 	}
-	dic.IterarRango(&desde, &hasta, visitar)
-	require.Less(t, 1000, suma)
+
+	dic.Iterar(visitar)
+	require.Equal(t, contador, contador_test)
 }
 
 func TestIteradorRangoVacio(t *testing.T) {

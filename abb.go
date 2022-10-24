@@ -104,7 +104,7 @@ func (a *abb[K, V]) Cantidad() int {
 }
 
 func (a *abb[K, V]) Iterar(funcion func(K, V) bool) {
-	a.iterar(a.raiz, funcion)
+	a.iterarPorRango(a.raiz, funcion, nil, nil)
 }
 
 func (a *abb[K, V]) Iterador() IterDiccionario[K, V] {
@@ -211,13 +211,6 @@ func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
 	}
 }
 
-func (a *abb[K, V]) iterar(nodo *nodoAbb[K, V], f func(K, V) bool) bool {
-	if nodo == nil {
-		return true
-	}
-	return a.iterar(nodo.izq, f) && f(nodo.clave, nodo.dato) && a.iterar(nodo.der, f)
-}
-
 func (i *iterAbb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V]) {
 	if nodo == nil || i.desde != nil && i.abb.cmp(nodo.clave, *i.desde) < 0 {
 		return
@@ -243,16 +236,15 @@ func (a *abb[K, V]) iterarPorRango(actual *nodoAbb[K, V], f func(K, V) bool, des
 	if actual == nil {
 		return true
 	}
-	if a.cmp(actual.clave, *desde) > 0 {
-		return a.iterarPorRango(actual.izq, f, desde, hasta)
+	continuar := false
+	if desde == nil || a.cmp(actual.clave, *desde) > 0 {
+		continuar = a.iterarPorRango(actual.izq, f, desde, hasta)
 	}
-	if a.cmp(actual.clave, *desde) >= 0 && a.cmp(actual.clave, *hasta) <= 0 {
-		if !f(actual.clave, actual.dato) {
-			return false
-		}
+	if continuar && (desde == nil || a.cmp(actual.clave, *desde) >= 0) && (hasta == nil || a.cmp(actual.clave, *hasta) <= 0) {
+		continuar = f(actual.clave, actual.dato)
 	}
-	if a.cmp(actual.clave, *hasta) < 0 {
+	if continuar && (hasta == nil || a.cmp(actual.clave, *hasta) < 0) {
 		return a.iterarPorRango(actual.der, f, desde, hasta)
 	}
-	return true
+	return false
 }
