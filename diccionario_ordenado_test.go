@@ -527,3 +527,145 @@ func BenchmarkIterador(b *testing.B) {
 		})
 	}
 }
+
+func TestIterarRangoVacio(t *testing.T) {
+	dic := TDA_ABB.CrearABB[string, *int](func(a, b string) int { return strings.Compare(a, b) })
+	suma := 0
+	visitar := func(clave string, dato *int) bool {
+		suma += *dato
+		return true
+	}
+	desde := "Hola"
+	hasta := "Chau"
+	dic.IterarRango(&desde, &hasta, visitar)
+	require.Zero(t, suma)
+}
+
+func TestIterarElementosFueraRango(t *testing.T) {
+	cmp := func(a, b int) int {
+		return a - b
+	}
+	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 10 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 10
+	dic.Guardar(raiz, &raiz)
+	for i := 0; i > 20; i++ {
+		dic.Guardar(i, &i)
+	}
+	suma := 0
+	visitar := func(clave int, dato *int) bool {
+		suma += *dato
+		return true
+	}
+	desde := 30
+	hasta := 50
+	dic.IterarRango(&desde, &hasta, visitar)
+	require.Zero(t, suma)
+}
+
+func TestIterarRangoVolumen(t *testing.T) {
+	cmp := func(a, b int) int {
+		return a - b
+	}
+	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 500
+	dic.Guardar(raiz, &raiz)
+
+	//Se guardan elementos aleatorios
+	for i := 0; i < 2500; i++ {
+		random := rand.Int()
+		dic.Guardar(rand.Intn(1000), &random)
+	}
+
+	desde := 500
+	hasta := 750
+	visitar := func(clave int, dato *int) bool {
+		require.True(t, clave >= desde && clave <= hasta)
+		return true
+	}
+	dic.IterarRango(&desde, &hasta, visitar)
+
+}
+
+func TestIterarCortePorFucion(t *testing.T) {
+	cmp := func(a, b int) int {
+		return a - b
+	}
+	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 500
+	dic.Guardar(raiz, &raiz)
+
+	//Se guardan numeros positivos aleatorios
+	for i := 0; i < 2500; i++ {
+		random := rand.Int()
+		dic.Guardar(rand.Intn(1000), &random)
+	}
+
+	//Con estas condiciones suma debe si o si superar 1000 en el caso de que itere todo
+	desde := 500
+	hasta := 1750
+	suma := 0
+
+	visitar := func(clave int, dato *int) bool {
+		suma += *dato
+		return suma > 1000
+	}
+	dic.IterarRango(&desde, &hasta, visitar)
+	require.Less(t, 1000, suma)
+}
+
+func TestIteradorRangoVacio(t *testing.T) {
+	dic := TDA_ABB.CrearABB[string, *int](func(a, b string) int { return strings.Compare(a, b) })
+	desde := "Hola"
+	hasta := "Chau"
+	iterador := dic.IteradorRango(&desde, &hasta)
+	require.PanicsWithValue(t, "El iterador termino de iterar", func() { iterador.Siguiente() })
+	require.PanicsWithValue(t, "El iterador termino de iterar", func() { iterador.VerActual() })
+	require.False(t, iterador.HaySiguiente())
+}
+
+func TestIterardorElementosFueraRango(t *testing.T) {
+	cmp := func(a, b int) int {
+		return a - b
+	}
+	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 10 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 10
+	dic.Guardar(raiz, &raiz)
+	for i := 0; i > 20; i++ {
+		dic.Guardar(i, &i)
+	}
+	desde := 30
+	hasta := 50
+	iterador := dic.IteradorRango(&desde, &hasta)
+	require.PanicsWithValue(t, "El iterador termino de iterar", func() { iterador.Siguiente() })
+	require.PanicsWithValue(t, "El iterador termino de iterar", func() { iterador.VerActual() })
+	require.False(t, iterador.HaySiguiente())
+}
+
+func TestIteradorRangoVolumen(t *testing.T) {
+	cmp := func(a, b int) int {
+		return a - b
+	}
+	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 500
+	dic.Guardar(raiz, &raiz)
+
+	//Se guardan elementos aleatorios
+	for i := 0; i < 2500; i++ {
+		random := rand.Int()
+		dic.Guardar(rand.Intn(1000), &random)
+	}
+
+	desde := 500
+	hasta := 750
+	iter := dic.IteradorRango(&desde, &hasta)
+	for iter.HaySiguiente() {
+		clave, _ := iter.VerActual()
+		require.True(t, clave >= desde && clave <= hasta)
+		iter.Siguiente()
+	}
+}
