@@ -45,6 +45,7 @@ func (a *abb[K, V]) Guardar(clave K, dato V) {
 	} else {
 		(*puntero).dato = dato
 	}
+	//a.verArbol()
 }
 
 func (a *abb[K, V]) verArbol() {
@@ -129,6 +130,11 @@ func (i *iterAbb[K, V]) Siguiente() K {
 		panic("El iterador termino de iterar")
 	}
 	nodo := i.pila.Desapilar()
+	if nodo.der != nil {
+		if (i.desde == nil || i.abb.cmp(*i.desde, nodo.der.clave) <= 0) && (i.hasta == nil || i.abb.cmp(*i.hasta, nodo.der.clave) >= 0) {
+			i.pila.Apilar(nodo.der)
+		}
+	}
 	i.apilarHijosIzq(nodo.der)
 
 	return nodo.clave
@@ -147,7 +153,10 @@ func (a *abb[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
 	iter.desde = desde
 	iter.hasta = hasta
 	primero := iter.buscarPrimero(a.raiz, desde)
-	iter.apilarHijosIzq(primero)
+	if primero != nil {
+		iter.pila.Apilar(primero)
+		iter.apilarHijosPrimero(primero)
+	}
 	return iter
 }
 
@@ -211,25 +220,50 @@ func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
 	}
 }
 
-func (i *iterAbb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V]) {
-	if nodo == nil || i.desde != nil && i.abb.cmp(nodo.clave, *i.desde) < 0 {
+func (i *iterAbb[K, V]) apilarHijosPrimero(nodo *nodoAbb[K, V]) {
+	if nodo == nil {
 		return
 	}
-
-	i.apilarHijosIzq(nodo.izq)
-	if i.hasta == nil || i.abb.cmp(nodo.clave, *i.hasta) <= 0 {
-		i.pila.Apilar(nodo)
+	if nodo.izq != nil {
+		if i.desde == nil || i.abb.cmp(*i.desde, nodo.izq.clave) <= 0 {
+			i.pila.Apilar(nodo.izq)
+			i.apilarHijosPrimero(nodo.izq)
+			return
+		}
+		if i.desde != nil && nodo.izq.der != nil && i.abb.cmp(*i.desde, nodo.izq.der.clave) <= 0 {
+			i.pila.Apilar(nodo.izq.der)
+			i.apilarHijosPrimero(nodo.izq.der)
+			return
+		}
 	}
 }
 
-func (i *iterAbb[K, V]) buscarPrimero(actual *nodoAbb[K, V], desde *K) *nodoAbb[K, V] {
-	if actual == nil {
+func (i *iterAbb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V]) {
+	if nodo == nil {
+		return
+	}
+	if nodo.izq != nil && (i.desde == nil || i.abb.cmp(*i.desde, nodo.izq.clave) <= 0) && (i.hasta == nil || i.abb.cmp(*i.hasta, nodo.izq.clave) >= 0) {
+		i.pila.Apilar(nodo.izq)
+	}
+	i.apilarHijosIzq(nodo.izq)
+}
+
+func (i *iterAbb[K, V]) buscarPrimero(nodo *nodoAbb[K, V], desde *K) *nodoAbb[K, V] {
+	if nodo == nil {
 		return nil
 	}
-	if desde == nil || i.abb.cmp(actual.clave, *desde) >= 0 {
-		return actual
+
+	if i.desde == nil && i.hasta == nil {
+		return nodo
 	}
-	return i.buscarPrimero(actual.der, desde)
+
+	if i.desde != nil && i.abb.cmp(*i.desde, nodo.clave) >= 0 {
+		return i.buscarPrimero(nodo.der, desde)
+	}
+	if i.hasta != nil && i.abb.cmp(*i.hasta, nodo.clave) <= 0 {
+		return i.buscarPrimero(nodo.izq, desde)
+	}
+	return nodo
 }
 
 func (a *abb[K, V]) iterarPorRango(actual *nodoAbb[K, V], f func(K, V) bool, desde *K, hasta *K) bool {

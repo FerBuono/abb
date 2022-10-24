@@ -13,6 +13,31 @@ import (
 
 var TAMS_VOLUMEN = []int{1000, 2000, 4000}
 
+func TestAbb(t *testing.T) {
+	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
+
+	desde := 12
+	hasta := 50
+	dic.Guardar(20, 10)
+	dic.Guardar(10, 10)
+	dic.Guardar(5, 10)
+	dic.Guardar(12, 10)
+	dic.Guardar(100, 10)
+	dic.Guardar(34, 10)
+	dic.Guardar(60, 10)
+	dic.Guardar(70, 10)
+	dic.Guardar(42, 10)
+	dic.Guardar(50, 10)
+	dic.Guardar(15, 12)
+	dic.Guardar(13, 10)
+
+	for iter := dic.IteradorRango(&desde, &hasta); iter.HaySiguiente(); {
+		fmt.Println(iter.VerActual())
+		iter.Siguiente()
+	}
+
+}
+
 func TestDiccionarioVacio(t *testing.T) {
 	t.Log("Comprueba que Diccionario vacio no tiene claves")
 	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
@@ -288,18 +313,21 @@ func ejecutarPruebaVolumen(b *testing.B, n int) {
 	claves := make([]string, n)
 	valores := make([]int, n)
 
-	/* Inserta 'n' parejas en el hash */
+	for i := 0; i < n; i++ {
+		claves[i] = fmt.Sprintf("%08d", i)
+	}
+
 	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(claves), func(i, j int) { claves[i], claves[j] = claves[j], claves[i] })
 
 	for i := 0; i < n; i++ {
 		valores[i] = i
-		claves[i] = fmt.Sprintf("%08d", i)
 		dic.Guardar(claves[i], valores[i])
 	}
 
 	require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
 
-	/* Verifica que devuelva los valores correctos */
+	// Verifica que devuelva los valores correctos
 	ok := true
 	for i := 0; i < n; i++ {
 		ok = dic.Pertenece(claves[i])
@@ -315,10 +343,7 @@ func ejecutarPruebaVolumen(b *testing.B, n int) {
 	require.True(b, ok, "Pertenece y Obtener con muchos elementos no funciona correctamente")
 	require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
 
-	/* Verifica que borre y devuelva los valores correctos */
-	claves = mezclar(claves)
-	valores = mezclar(valores)
-
+	// Verifica que borre y devuelva los valores correctos
 	for i := 0; i < n; i++ {
 		ok = dic.Borrar(claves[i]) == valores[i]
 		if !ok {
@@ -328,16 +353,6 @@ func ejecutarPruebaVolumen(b *testing.B, n int) {
 
 	require.True(b, ok, "Borrar muchos elementos no funciona correctamente")
 	require.EqualValues(b, 0, dic.Cantidad())
-}
-
-func mezclar[T any](vals []T) []T {
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-	ret := make([]T, len(vals))
-	perm := r.Perm(len(vals))
-	for i, randIndex := range perm {
-		ret[i] = vals[randIndex]
-	}
-	return ret
 }
 
 func BenchmarkDiccionario(b *testing.B) {
@@ -466,9 +481,14 @@ func ejecutarPruebasVolumenIterador(b *testing.B, n int) {
 	claves := make([]string, n)
 	valores := make([]int, n)
 
-	/* Inserta 'n' parejas en el hash */
 	for i := 0; i < n; i++ {
 		claves[i] = fmt.Sprintf("%08d", i)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(claves), func(i, j int) { claves[i], claves[j] = claves[j], claves[i] })
+
+	for i := 0; i < n; i++ {
 		valores[i] = i
 		dic.Guardar(claves[i], &valores[i])
 	}
@@ -593,26 +613,27 @@ func TestIterarCortePorFucion(t *testing.T) {
 		return a - b
 	}
 	dic := TDA_ABB.CrearABB[int, *int](cmp)
+	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
+	raiz := 500
+	dic.Guardar(raiz, &raiz)
 
-	raiz := 10
-	contador := 0
-	dic.Guardar(raiz, nil)
-
-	for i := 0; i < 20; i++ {
-		if i <= 5 {
-			contador += i + 1
-		}
-		dic.Guardar(i, nil)
+	//Se guardan numeros positivos aleatorios
+	for i := 0; i < 2500; i++ {
+		random := rand.Int()
+		dic.Guardar(rand.Intn(1000), &random)
 	}
 
-	contador_test := 0
+	//Con estas condiciones suma debe si o si superar 1000 en el caso de que itere todo
+	desde := 500
+	hasta := 1750
+	suma := 0
+
 	visitar := func(clave int, dato *int) bool {
-		contador_test += clave // Si sumo mi clave es porque clave-1 dio true
-		return clave <= 5
+		suma += *dato
+		return suma < 1000
 	}
-
-	dic.Iterar(visitar)
-	require.Equal(t, contador, contador_test)
+	dic.IterarRango(&desde, &hasta, visitar)
+	require.Less(t, 1000, suma)
 }
 
 func TestIteradorRangoVacio(t *testing.T) {
@@ -643,7 +664,6 @@ func TestIterardorElementosFueraRango(t *testing.T) {
 	require.PanicsWithValue(t, "El iterador termino de iterar", func() { iterador.VerActual() })
 	require.False(t, iterador.HaySiguiente())
 }
-
 func TestIteradorRangoVolumen(t *testing.T) {
 	cmp := func(a, b int) int {
 		return a - b
@@ -653,6 +673,7 @@ func TestIteradorRangoVolumen(t *testing.T) {
 	raiz := 500
 	dic.Guardar(raiz, &raiz)
 
+	rand.Seed(time.Now().UnixNano())
 	//Se guardan elementos aleatorios
 	for i := 0; i < 2500; i++ {
 		random := rand.Int()
@@ -661,8 +682,8 @@ func TestIteradorRangoVolumen(t *testing.T) {
 
 	desde := 500
 	hasta := 750
-	iter := dic.IteradorRango(&desde, &hasta)
-	for iter.HaySiguiente() {
+
+	for iter := dic.IteradorRango(&desde, &hasta); iter.HaySiguiente(); {
 		clave, _ := iter.VerActual()
 		require.True(t, clave >= desde && clave <= hasta)
 		iter.Siguiente()
