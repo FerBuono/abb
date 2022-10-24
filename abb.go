@@ -236,14 +236,14 @@ func (a *abb[K, V]) iterarPorRango(actual *nodoAbb[K, V], f func(K, V) bool, des
 	if actual == nil {
 		return true
 	}
-	continuar := false
+	anterior := true
 	if desde == nil || a.cmp(actual.clave, *desde) > 0 {
-		continuar = a.iterarPorRango(actual.izq, f, desde, hasta)
+		anterior = a.iterarPorRango(actual.izq, f, desde, hasta)
 	}
-	if continuar && (desde == nil || a.cmp(actual.clave, *desde) >= 0) && (hasta == nil || a.cmp(actual.clave, *hasta) <= 0) {
-		continuar = f(actual.clave, actual.dato)
+	if anterior && (desde == nil || a.cmp(actual.clave, *desde) >= 0) && (hasta == nil || a.cmp(actual.clave, *hasta) <= 0) {
+		anterior = f(actual.clave, actual.dato)
 	}
-	if continuar && (hasta == nil || a.cmp(actual.clave, *hasta) < 0) {
+	if anterior && (hasta == nil || a.cmp(actual.clave, *hasta) < 0) {
 		return a.iterarPorRango(actual.der, f, desde, hasta)
 	}
 	return false
