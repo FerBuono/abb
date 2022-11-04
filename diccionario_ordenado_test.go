@@ -13,25 +13,6 @@ import (
 
 var TAMS_VOLUMEN = []int{1000, 2000, 4000}
 
-func TestAbb(t *testing.T) {
-	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
-
-	desde := 2
-	hasta := 5
-	dic.Guardar(1, 10)
-	dic.Guardar(2, 10)
-	dic.Guardar(3, 10)
-	dic.Guardar(4, 10)
-	dic.Guardar(5, 10)
-	dic.Guardar(6, 10)
-	dic.Guardar(7, 10)
-	for iter := dic.IteradorRango(&desde, &hasta); iter.HaySiguiente(); {
-		fmt.Println(iter.VerActual())
-		iter.Siguiente()
-	}
-
-}
-
 func TestDiccionarioVacio(t *testing.T) {
 	t.Log("Comprueba que Diccionario vacio no tiene claves")
 	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })

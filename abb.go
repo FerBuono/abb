@@ -34,18 +34,14 @@ func CrearABB[K comparable, V any](funcion_cmp func(K, K) int) DiccionarioOrdena
 // Primitivas del Diccionario
 
 func (a *abb[K, V]) Guardar(clave K, dato V) {
-	puntero := a.buscarPuntero(clave, a.raiz)
+	puntero := a.buscarPuntero(clave, &a.raiz)
 	if *puntero == nil {
-		if a.raiz == nil {
-			a.raiz = &nodoAbb[K, V]{clave: clave, dato: dato}
-		} else {
-			*puntero = &nodoAbb[K, V]{clave: clave, dato: dato}
-		}
+		*puntero = &nodoAbb[K, V]{clave: clave, dato: dato}
 		a.cant++
 	} else {
 		(*puntero).dato = dato
 	}
-	//a.verArbol()
+	a.verArbol()
 }
 
 func (a *abb[K, V]) verArbol() {
@@ -61,11 +57,11 @@ func (a *abb[K, V]) verArbol() {
 }
 
 func (a *abb[K, V]) Pertenece(clave K) bool {
-	return *(a.buscarPuntero(clave, a.raiz)) != nil
+	return *(a.buscarPuntero(clave, &a.raiz)) != nil
 }
 
 func (a *abb[K, V]) Obtener(clave K) V {
-	puntero := a.buscarPuntero(clave, a.raiz)
+	puntero := a.buscarPuntero(clave, &a.raiz)
 	if *puntero == nil {
 		panic("La clave no pertenece al diccionario")
 	}
@@ -73,7 +69,7 @@ func (a *abb[K, V]) Obtener(clave K) V {
 }
 
 func (a *abb[K, V]) Borrar(clave K) V {
-	puntero := a.buscarPuntero(clave, a.raiz)
+	puntero := a.buscarPuntero(clave, &a.raiz)
 	if *puntero == nil {
 		panic("La clave no pertenece al diccionario")
 	}
@@ -162,22 +158,22 @@ func (a *abb[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
 
 // Funciones y métodos auxiliares
 
-func (a *abb[K, V]) buscarPuntero(clave K, nodo *nodoAbb[K, V]) **nodoAbb[K, V] {
-	if nodo == nil {
-		return &nodo
+func (a *abb[K, V]) buscarPuntero(clave K, nodo **nodoAbb[K, V]) **nodoAbb[K, V] {
+	if *nodo == nil {
+		return nodo
 	}
-	if a.cmp(clave, nodo.clave) < 0 {
-		if nodo.izq == nil || a.cmp(clave, nodo.izq.clave) == 0 {
-			return &nodo.izq
+	if a.cmp(clave, (*nodo).clave) < 0 {
+		if (*nodo).izq == nil || a.cmp(clave, (*nodo).izq.clave) == 0 {
+			return &(*nodo).izq
 		}
-		return a.buscarPuntero(clave, nodo.izq)
-	} else if a.cmp(clave, nodo.clave) > 0 {
-		if nodo.der == nil || a.cmp(clave, nodo.der.clave) == 0 {
-			return &nodo.der
+		return a.buscarPuntero(clave, &(*nodo).izq)
+	} else if a.cmp(clave, (*nodo).clave) > 0 {
+		if (*nodo).der == nil || a.cmp(clave, (*nodo).der.clave) == 0 {
+			return &(*nodo).der
 		}
-		return a.buscarPuntero(clave, nodo.der)
+		return a.buscarPuntero(clave, &(*nodo).der)
 	} else {
-		return &nodo
+		return nodo
 	}
 }
 
@@ -208,7 +204,7 @@ func (a *abb[K, V]) obtenerHijo(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
 }
 
 func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
-	puntero := a.buscarPuntero(clave, nodo)
+	puntero := a.buscarPuntero(clave, &nodo)
 	if a.cantidadDeHijos(*puntero) == 0 {
 		*puntero = nil
 	} else if a.cantidadDeHijos(*puntero) == 1 {
