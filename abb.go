@@ -2,7 +2,6 @@ package diccionario
 
 import (
 	TDAPila "diccionario/pila"
-	"fmt"
 )
 
 type nodoAbb[K comparable, V any] struct {
@@ -41,18 +40,6 @@ func (a *abb[K, V]) Guardar(clave K, dato V) {
 	} else {
 		(*puntero).dato = dato
 	}
-}
-
-func (a *abb[K, V]) verArbol() {
-	if a.cant == 0 {
-		return
-	}
-	for iter := a.Iterador(); iter.HaySiguiente(); {
-		clave, dato := iter.VerActual()
-		fmt.Print("- {", clave, ":", dato, "} -")
-		iter.Siguiente()
-	}
-	fmt.Println("\n-----------")
 }
 
 func (a *abb[K, V]) Pertenece(clave K) bool {
