@@ -13,6 +13,25 @@ import (
 
 var TAMS_VOLUMEN = []int{1000, 2000, 4000}
 
+func TestDiccionario(t *testing.T) {
+	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
+	dic.Guardar(10, 10)
+	dic.Guardar(5, 5)
+	dic.Guardar(15, 15)
+	dic.Guardar(2, 2)
+	dic.Guardar(7, 7)
+	dic.Guardar(1, 1)
+	dic.Guardar(6, 6)
+	dic.Guardar(12, 12)
+	dic.Guardar(17, 17)
+	inf := 6
+	sup := 14
+	for iter := dic.IteradorRango(&inf, &sup); iter.HaySiguiente(); {
+		fmt.Println(iter.VerActual())
+		iter.Siguiente()
+	}
+}
+
 func TestDiccionarioVacio(t *testing.T) {
 	t.Log("Comprueba que Diccionario vacio no tiene claves")
 	dic := TDA_ABB.CrearABB[int, int](func(a, b int) int { return a - b })
@@ -218,40 +237,31 @@ func TestValorNulo(t *testing.T) {
 	require.False(t, dic.Pertenece(clave))
 }
 
-func buscar(clave string, claves []string) int {
-	for i, c := range claves {
-		if c == clave {
-			return i
-		}
-	}
-	return -1
-}
-
 func TestIteradorInternoClaves(t *testing.T) {
 	t.Log("Valida que todas las claves sean recorridas (y una única vez) con el iterador interno")
-	clave1 := "Perro"
-	clave2 := "Gato"
-	clave3 := "Vaca"
-	claves := []string{clave1, clave2, clave3}
-	dic := TDA_ABB.CrearABB[string, *int](func(a, b string) int { return strings.Compare(a, b) })
+	clave1 := 1
+	clave2 := 15
+	clave3 := 10
+	claves := []int{clave1, clave2, clave3}
+	dic := TDA_ABB.CrearABB[int, *int](func(a, b int) int { return a - b })
 	dic.Guardar(claves[0], nil)
 	dic.Guardar(claves[1], nil)
 	dic.Guardar(claves[2], nil)
 
-	cs := []string{"", "", ""}
+	cs := make([]int, 3)
 	cantidad := 0
 	cantPtr := &cantidad
 
-	dic.Iterar(func(clave string, dato *int) bool {
+	dic.Iterar(func(clave int, dato *int) bool {
 		cs[cantidad] = clave
 		*cantPtr = *cantPtr + 1
 		return true
 	})
 
 	require.EqualValues(t, 3, cantidad)
-	require.NotEqualValues(t, -1, buscar(cs[0], claves))
-	require.NotEqualValues(t, -1, buscar(cs[1], claves))
-	require.NotEqualValues(t, -1, buscar(cs[2], claves))
+	require.EqualValues(t, claves[0], cs[0])
+	require.EqualValues(t, claves[1], cs[2])
+	require.EqualValues(t, claves[2], cs[1])
 	require.NotEqualValues(t, cs[0], cs[1])
 	require.NotEqualValues(t, cs[0], cs[2])
 	require.NotEqualValues(t, cs[2], cs[1])
@@ -372,19 +382,19 @@ func TestDiccionarioIterar(t *testing.T) {
 
 	require.True(t, iter.HaySiguiente())
 	primero, _ := iter.VerActual()
-	require.NotEqualValues(t, -1, buscar(primero, claves))
+	require.EqualValues(t, claves[0], primero)
 
 	require.EqualValues(t, primero, iter.Siguiente())
 	segundo, segundo_valor := iter.VerActual()
-	require.NotEqualValues(t, -1, buscar(segundo, claves))
-	require.EqualValues(t, valores[buscar(segundo, claves)], segundo_valor)
+	require.EqualValues(t, claves[1], segundo)
+	require.EqualValues(t, valores[1], segundo_valor)
 	require.NotEqualValues(t, primero, segundo)
 	require.True(t, iter.HaySiguiente())
 
 	require.EqualValues(t, segundo, iter.Siguiente())
 	require.True(t, iter.HaySiguiente())
 	tercero, _ := iter.VerActual()
-	require.NotEqualValues(t, -1, buscar(tercero, claves))
+	require.EqualValues(t, claves[2], tercero)
 	require.NotEqualValues(t, primero, tercero)
 	require.NotEqualValues(t, segundo, tercero)
 	require.EqualValues(t, tercero, iter.Siguiente())
@@ -413,9 +423,9 @@ func TestIteradorNoLlegaAlFinal(t *testing.T) {
 	require.NotEqualValues(t, primero, segundo)
 	require.NotEqualValues(t, tercero, segundo)
 	require.NotEqualValues(t, primero, tercero)
-	require.NotEqualValues(t, -1, buscar(primero, claves))
-	require.NotEqualValues(t, -1, buscar(segundo, claves))
-	require.NotEqualValues(t, -1, buscar(tercero, claves))
+	require.EqualValues(t, claves[0], primero)
+	require.EqualValues(t, claves[1], segundo)
+	require.EqualValues(t, claves[2], tercero)
 }
 
 func TestPruebaIterarTrasBorrados(t *testing.T) {

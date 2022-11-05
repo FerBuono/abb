@@ -41,7 +41,6 @@ func (a *abb[K, V]) Guardar(clave K, dato V) {
 	} else {
 		(*puntero).dato = dato
 	}
-	a.verArbol()
 }
 
 func (a *abb[K, V]) verArbol() {
@@ -70,30 +69,7 @@ func (a *abb[K, V]) Obtener(clave K) V {
 
 func (a *abb[K, V]) Borrar(clave K) V {
 	puntero := a.buscarPuntero(clave, &a.raiz)
-	if *puntero == nil {
-		panic("La clave no pertenece al diccionario")
-	}
-	dato := (*puntero).dato
-	if a.cant == 1 {
-		a.raiz = nil
-	}
-	if a.cantidadDeHijos(*puntero) == 0 {
-		*puntero = nil
-	} else if a.cantidadDeHijos(*puntero) == 1 {
-		reemplazo := a.obtenerHijo(*puntero)
-		(*puntero).clave = reemplazo.clave
-		(*puntero).dato = reemplazo.dato
-		(*puntero).izq = reemplazo.izq
-		(*puntero).der = reemplazo.der
-	} else {
-		reemplazo := a.buscarReemplazo((*puntero).izq)
-		(*puntero).clave = reemplazo.clave
-		(*puntero).dato = reemplazo.dato
-		a.borrarReemplazo(reemplazo.clave, (*puntero).izq)
-	}
-	a.cant--
-
-	return dato
+	return a.borrar(puntero)
 }
 
 func (a *abb[K, V]) Cantidad() int {
@@ -126,13 +102,7 @@ func (i *iterAbb[K, V]) Siguiente() K {
 		panic("El iterador termino de iterar")
 	}
 	nodo := i.pila.Desapilar()
-	if nodo.der != nil {
-		if (i.desde == nil || i.abb.cmp(*i.desde, nodo.der.clave) <= 0) && (i.hasta == nil || i.abb.cmp(*i.hasta, nodo.der.clave) >= 0) {
-			i.pila.Apilar(nodo.der)
-		}
-	}
 	i.apilarHijosIzq(nodo.der)
-
 	return nodo.clave
 }
 
@@ -177,42 +147,50 @@ func (a *abb[K, V]) buscarPuntero(clave K, nodo **nodoAbb[K, V]) **nodoAbb[K, V]
 	}
 }
 
-func (a *abb[K, V]) buscarReemplazo(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
-	if nodo.der == nil {
+func (a *abb[K, V]) borrar(puntero **nodoAbb[K, V]) V {
+	if *puntero == nil {
+		panic("La clave no pertenece al diccionario")
+	}
+	dato := (*puntero).dato
+	if a.cantidadDeHijos(puntero) == 0 {
+		*puntero = nil
+	} else if a.cantidadDeHijos(puntero) == 1 {
+		reemplazo := a.obtenerHijo(puntero)
+		*puntero = *reemplazo
+	} else {
+		reemplazo := a.buscarReemplazo(&(*puntero).izq)
+		nuevaClave, nuevoDato := (*reemplazo).clave, (*reemplazo).dato
+		a.borrar(reemplazo)
+		(*puntero).clave = nuevaClave
+		(*puntero).dato = nuevoDato
+	}
+	a.cant--
+	return dato
+}
+
+func (a *abb[K, V]) buscarReemplazo(nodo **nodoAbb[K, V]) **nodoAbb[K, V] {
+	if (*nodo).der == nil {
 		return nodo
 	} else {
-		return a.buscarReemplazo(nodo.der)
+		return a.buscarReemplazo(&(*nodo).der)
 	}
 }
 
-func (a *abb[K, V]) cantidadDeHijos(nodo *nodoAbb[K, V]) int {
-	if nodo.izq != nil && nodo.der != nil {
+func (a *abb[K, V]) cantidadDeHijos(nodo **nodoAbb[K, V]) int {
+	if (*nodo).izq != nil && (*nodo).der != nil {
 		return 2
-	} else if nodo.izq == nil && nodo.der == nil {
+	} else if (*nodo).izq == nil && (*nodo).der == nil {
 		return 0
 	} else {
 		return 1
 	}
 }
 
-func (a *abb[K, V]) obtenerHijo(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
-	if nodo.izq != nil {
-		return nodo.izq
+func (a *abb[K, V]) obtenerHijo(nodo **nodoAbb[K, V]) **nodoAbb[K, V] {
+	if (*nodo).izq != nil {
+		return &(*nodo).izq
 	} else {
-		return nodo.der
-	}
-}
-
-func (a *abb[K, V]) borrarReemplazo(clave K, nodo *nodoAbb[K, V]) {
-	puntero := a.buscarPuntero(clave, &nodo)
-	if a.cantidadDeHijos(*puntero) == 0 {
-		*puntero = nil
-	} else if a.cantidadDeHijos(*puntero) == 1 {
-		reemplazo := a.obtenerHijo(*puntero)
-		(*puntero).clave = reemplazo.clave
-		(*puntero).dato = reemplazo.dato
-		(*puntero).izq = reemplazo.izq
-		(*puntero).der = reemplazo.der
+		return &(*nodo).der
 	}
 }
 
@@ -238,8 +216,8 @@ func (i *iterAbb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V]) {
 	if nodo == nil {
 		return
 	}
-	if nodo.izq != nil && (i.desde == nil || i.abb.cmp(*i.desde, nodo.izq.clave) <= 0) && (i.hasta == nil || i.abb.cmp(*i.hasta, nodo.izq.clave) >= 0) {
-		i.pila.Apilar(nodo.izq)
+	if (i.desde == nil || i.abb.cmp(*i.desde, nodo.clave) <= 0) && (i.hasta == nil || i.abb.cmp(*i.hasta, nodo.clave) >= 0) {
+		i.pila.Apilar(nodo)
 	}
 	i.apilarHijosIzq(nodo.izq)
 }
