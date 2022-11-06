@@ -105,7 +105,7 @@ func (a *abb[K, V]) IteradorRango(desde *K, hasta *K) IterDiccionario[K, V] {
 	iter.pila = TDAPila.CrearPilaDinamica[*nodoAbb[K, V]]()
 	iter.desde = desde
 	iter.hasta = hasta
-	primero := iter.buscarPrimero(a.raiz, desde)
+	primero := iter.buscarPrimero(a.raiz)
 	if primero != nil {
 		iter.pila.Apilar(primero)
 		iter.apilarHijosPrimero(primero)
@@ -209,7 +209,7 @@ func (i *iterAbb[K, V]) apilarHijosIzq(nodo *nodoAbb[K, V]) {
 	i.apilarHijosIzq(nodo.izq)
 }
 
-func (i *iterAbb[K, V]) buscarPrimero(nodo *nodoAbb[K, V], desde *K) *nodoAbb[K, V] {
+func (i *iterAbb[K, V]) buscarPrimero(nodo *nodoAbb[K, V]) *nodoAbb[K, V] {
 	if nodo == nil {
 		return nil
 	}
@@ -219,10 +219,10 @@ func (i *iterAbb[K, V]) buscarPrimero(nodo *nodoAbb[K, V], desde *K) *nodoAbb[K,
 	}
 
 	if i.desde != nil && i.abb.cmp(*i.desde, nodo.clave) > 0 {
-		return i.buscarPrimero(nodo.der, desde)
+		return i.buscarPrimero(nodo.der)
 	}
 	if i.hasta != nil && i.abb.cmp(*i.hasta, nodo.clave) < 0 {
-		return i.buscarPrimero(nodo.izq, desde)
+		return i.buscarPrimero(nodo.izq)
 	}
 	return nodo
 }

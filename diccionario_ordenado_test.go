@@ -233,9 +233,9 @@ func TestIteradorInternoClaves(t *testing.T) {
 	cantidad := 0
 	cantPtr := &cantidad
 
-	dic.Iterar(func(clave int, dato *int) bool {
+	dic.Iterar(func(clave int, _ *int) bool {
 		cs[cantidad] = clave
-		*cantPtr = *cantPtr + 1
+		*cantPtr += +1
 		return true
 	})
 
@@ -517,7 +517,7 @@ func BenchmarkIterador(b *testing.B) {
 func TestIterarRangoVacio(t *testing.T) {
 	dic := TDA_ABB.CrearABB[string, *int](func(a, b string) int { return strings.Compare(a, b) })
 	suma := 0
-	visitar := func(clave string, dato *int) bool {
+	visitar := func(_ string, dato *int) bool {
 		suma += *dato
 		return true
 	}
@@ -539,7 +539,7 @@ func TestIterarElementosFueraRango(t *testing.T) {
 		dic.Guardar(i, &i)
 	}
 	suma := 0
-	visitar := func(clave int, dato *int) bool {
+	visitar := func(_ int, dato *int) bool {
 		suma += *dato
 		return true
 	}
@@ -566,7 +566,7 @@ func TestIterarRangoVolumen(t *testing.T) {
 
 	desde := 500
 	hasta := 750
-	visitar := func(clave int, dato *int) bool {
+	visitar := func(clave int, _ *int) bool {
 		require.True(t, clave >= desde && clave <= hasta)
 		return true
 	}
@@ -578,28 +578,24 @@ func TestIterarCortePorFucion(t *testing.T) {
 	cmp := func(a, b int) int {
 		return a - b
 	}
+	arr := []int{8, 4, 12, 2, 5, 6, 7, 9, 1, 16, 13, 3, 10, 15}
 	dic := TDA_ABB.CrearABB[int, *int](cmp)
-	//Guardo 500 como raiz para que el abb tenga al menos 2 ramas
-	raiz := 500
-	dic.Guardar(raiz, &raiz)
 
-	//Se guardan numeros positivos aleatorios
-	for i := 0; i < 2500; i++ {
-		random := rand.Int()
-		dic.Guardar(rand.Intn(1000), &random)
+	for i := 0; i < len(arr); i++ {
+		dic.Guardar(arr[i], &arr[i])
 	}
 
 	//Con estas condiciones suma debe si o si superar 1000 en el caso de que itere todo
-	desde := 500
-	hasta := 1750
+	desde := 1
+	hasta := 15
 	suma := 0
 
-	visitar := func(clave int, dato *int) bool {
+	visitar := func(_ int, dato *int) bool {
 		suma += *dato
-		return suma < 1000
+		return suma < 45
 	}
 	dic.IterarRango(&desde, &hasta, visitar)
-	require.Less(t, 1000, suma)
+	require.Equal(t, 45, suma)
 }
 
 func TestIteradorRangoVacio(t *testing.T) {
