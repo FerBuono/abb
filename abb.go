@@ -147,7 +147,7 @@ func (a *abb[K, V]) borrar(puntero **nodoAbb[K, V]) V {
 	} else {
 		reemplazo := a.buscarReemplazo(&(*puntero).izq)
 		nuevaClave, nuevoDato := (*reemplazo).clave, (*reemplazo).dato
-		a.borrar(reemplazo)
+		*reemplazo = (*reemplazo).izq
 		(*puntero).clave = nuevaClave
 		(*puntero).dato = nuevoDato
 	}

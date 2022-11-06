@@ -290,7 +290,6 @@ func ejecutarPruebaVolumen(b *testing.B, n int) {
 		valores[i] = i
 		dic.Guardar(claves[i], valores[i])
 	}
-
 	require.EqualValues(b, n, dic.Cantidad(), "La cantidad de elementos es incorrecta")
 
 	// Verifica que devuelva los valores correctos
