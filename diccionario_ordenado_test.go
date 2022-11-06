@@ -585,11 +585,11 @@ func TestIterarCortePorFucion(t *testing.T) {
 		dic.Guardar(arr[i], &arr[i])
 	}
 
-	//Con estas condiciones suma debe si o si superar 1000 en el caso de que itere todo
 	desde := 1
 	hasta := 15
 	suma := 0
 
+	//Con este arreglo y estas condiciones suma va a ser igual a 45
 	visitar := func(_ int, dato *int) bool {
 		suma += *dato
 		return suma < 45
